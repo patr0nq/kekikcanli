@@ -3,6 +3,6 @@
     "description": "Türkçe içerikli eklenti havuzu",
     "manifestVersion": 1,
     "pluginLists": [
-      "builds"
+      "https://raw.githubusercontent.com/patr0nq/kekikcanli/refs/heads/main/build.json"
     ]
 }
