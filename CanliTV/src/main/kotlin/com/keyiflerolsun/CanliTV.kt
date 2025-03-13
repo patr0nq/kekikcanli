@@ -1,5 +1,3 @@
-// ! https://codeberg.org/cloudstream/cloudstream-extensions-multilingual/src/branch/master/FreeTVProvider/src/main/kotlin/com/lagradost/FreeTVProvider.kt
-
 package com.keyiflerolsun
 
 import android.util.Log
@@ -10,13 +8,13 @@ import com.lagradost.cloudstream3.utils.AppUtils.toJson
 import java.io.InputStream
 
 class CanliTV : MainAPI() {
-    override var mainUrl              = "https://raw.githubusercontent.com/patr0nq/kekimm3u/refs/heads/main/KekikAkademi.m3u"
-    override var name                 = "CanliTV"
-    override val hasMainPage          = true
-    override var lang                 = "tr"
-    override val hasQuickSearch       = true
-    override val hasDownloadSupport   = false
-    override val supportedTypes       = setOf(TvType.Live)
+    override var mainUrl = "https://raw.githubusercontent.com/patr0nq/kekimm3u/refs/heads/main/KekikAkademi.m3u"
+    override var name = "CanliTV"
+    override val hasMainPage = true
+    override var lang = "tr"
+    override val hasQuickSearch = true
+    override val hasDownloadSupport = false
+    override val supportedTypes = setOf(TvType.Live)
 
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
         val kanallar = IptvPlaylistParser().parseM3U(app.get(mainUrl).text)
@@ -24,12 +22,12 @@ class CanliTV : MainAPI() {
         return newHomePageResponse(
             kanallar.items.groupBy { it.attributes["group-title"] }.map { group ->
                 val title = group.key ?: ""
-                val show  = group.value.map { kanal ->
-                    val streamurl   = kanal.url.toString()
+                val show = group.value.map { kanal ->
+                    val streamurl = kanal.url.toString()
                     val channelname = kanal.title.toString()
-                    val posterurl   = kanal.attributes["tvg-logo"].toString()
-                    val chGroup     = kanal.attributes["group-title"].toString()
-                    val nation      = kanal.attributes["tvg-country"].toString()
+                    val posterurl = kanal.attributes["tvg-logo"].toString()
+                    val chGroup = kanal.attributes["group-title"].toString()
+                    val nation = kanal.attributes["tvg-country"].toString()
 
                     newLiveSearchResponse(
                         channelname,
@@ -41,7 +39,6 @@ class CanliTV : MainAPI() {
                     }
                 }
 
-
                 HomePageList(title, show, isHorizontalImages = true)
             },
             hasNext = false
@@ -52,11 +49,11 @@ class CanliTV : MainAPI() {
         val kanallar = IptvPlaylistParser().parseM3U(app.get(mainUrl).text)
 
         return kanallar.items.filter { it.title.toString().lowercase().contains(query.lowercase()) }.map { kanal ->
-            val streamurl   = kanal.url.toString()
+            val streamurl = kanal.url.toString()
             val channelname = kanal.title.toString()
-            val posterurl   = kanal.attributes["tvg-logo"].toString()
-            val chGroup     = kanal.attributes["group-title"].toString()
-            val nation      = kanal.attributes["tvg-country"].toString()
+            val posterurl = kanal.attributes["tvg-logo"].toString()
+            val chGroup = kanal.attributes["group-title"].toString()
+            val nation = kanal.attributes["tvg-country"].toString()
 
             newLiveSearchResponse(
                 channelname,
@@ -66,7 +63,6 @@ class CanliTV : MainAPI() {
                 this.posterUrl = posterurl
                 this.lang = nation
             }
-
         }
     }
 
@@ -74,24 +70,24 @@ class CanliTV : MainAPI() {
 
     override suspend fun load(url: String): LoadResponse {
         val loadData = fetchDataFromUrlOrJson(url)
-        val nation:String = if (loadData.group == "NSFW") {
+        val nation: String = if (loadData.group == "NSFW") {
             "⚠️🔞🔞🔞 » ${loadData.group} | ${loadData.nation} « 🔞🔞🔞⚠️"
         } else {
             "» ${loadData.group} | ${loadData.nation} «"
         }
 
-        val kanallar        = IptvPlaylistParser().parseM3U(app.get(mainUrl).text)
+        val kanallar = IptvPlaylistParser().parseM3U(app.get(mainUrl).text)
         val recommendations = mutableListOf<LiveSearchResponse>()
 
         for (kanal in kanallar.items) {
             if (kanal.attributes["group-title"].toString() == loadData.group) {
-                val rcStreamUrl   = kanal.url.toString()
+                val rcStreamUrl = kanal.url.toString()
                 val rcChannelName = kanal.title.toString()
                 if (rcChannelName == loadData.title) continue
 
-                val rcPosterUrl   = kanal.attributes["tvg-logo"].toString()
-                val rcChGroup     = kanal.attributes["group-title"].toString()
-                val rcNation      = kanal.attributes["tvg-country"].toString()
+                val rcPosterUrl = kanal.attributes["tvg-logo"].toString()
+                val rcChGroup = kanal.attributes["group-title"].toString()
+                val rcNation = kanal.attributes["tvg-country"].toString()
 
                 recommendations.add(newLiveSearchResponse(
                     rcChannelName,
@@ -101,7 +97,6 @@ class CanliTV : MainAPI() {
                     this.posterUrl = rcPosterUrl
                     this.lang = rcNation
                 })
-
             }
         }
 
@@ -118,18 +113,18 @@ class CanliTV : MainAPI() {
         Log.d("IPTV", "loadData » $loadData")
 
         val kanallar = IptvPlaylistParser().parseM3U(app.get(mainUrl).text)
-        val kanal    = kanallar.items.first { it.url == loadData.url }
+        val kanal = kanallar.items.first { it.url == loadData.url }
         Log.d("IPTV", "kanal » $kanal")
 
         callback.invoke(
             ExtractorLink(
-                source  = this.name,
-                name    = this.name,
-                url     = loadData.url,
+                source = this.name,
+                name = this.name,
+                url = loadData.url,
                 headers = kanal.headers,
                 referer = kanal.headers["referrer"] ?: "",
                 quality = Qualities.Unknown.value,
-                isM3u8  = true
+                isM3u8 = true
             )
         )
 
@@ -143,13 +138,13 @@ class CanliTV : MainAPI() {
             return parseJson<LoadData>(data)
         } else {
             val kanallar = IptvPlaylistParser().parseM3U(app.get(mainUrl).text)
-            val kanal    = kanallar.items.first { it.url == data }
+            val kanal = kanallar.items.first { it.url == data }
 
-            val streamurl   = kanal.url.toString()
+            val streamurl = kanal.url.toString()
             val channelname = kanal.title.toString()
-            val posterurl   = kanal.attributes["tvg-logo"].toString()
-            val chGroup     = kanal.attributes["group-title"].toString()
-            val nation      = kanal.attributes["tvg-country"].toString()
+            val posterurl = kanal.attributes["tvg-logo"].toString()
+            val chGroup = kanal.attributes["group-title"].toString()
+            val nation = kanal.attributes["tvg-country"].toString()
 
             return LoadData(streamurl, channelname, posterurl, chGroup, nation)
         }
@@ -161,11 +156,11 @@ data class Playlist(
 )
 
 data class PlaylistItem(
-    val title: String?                  = null,
+    val title: String? = null,
     val attributes: Map<String, String> = emptyMap(),
-    val headers: Map<String, String>    = emptyMap(),
-    val url: String?                    = null,
-    val userAgent: String?              = null
+    val headers: Map<String, String> = emptyMap(),
+    val url: String? = null,
+    val userAgent: String? = null
 )
 
 class IptvPlaylistParser {
@@ -202,14 +197,14 @@ class IptvPlaylistParser {
         while (line != null) {
             if (line.isNotEmpty()) {
                 if (line.startsWith(EXT_INF)) {
-                    val title      = line.getTitle()
+                    val title = line.getTitle()
                     val attributes = line.getAttributes()
 
                     playlistItems.add(PlaylistItem(title, attributes))
                 } else if (line.startsWith(EXT_VLC_OPT)) {
-                    val item      = playlistItems[currentIndex]
+                    val item = playlistItems[currentIndex]
                     val userAgent = item.userAgent ?: line.getTagValue("http-user-agent")
-                    val referrer  = line.getTagValue("http-referrer")
+                    val referrer = line.getTagValue("http-referrer")
 
                     val headers = mutableMapOf<String, String>()
 
@@ -223,19 +218,21 @@ class IptvPlaylistParser {
 
                     playlistItems[currentIndex] = item.copy(
                         userAgent = userAgent,
-                        headers   = headers
+                        headers = headers
                     )
                 } else {
                     if (!line.startsWith("#")) {
-                        val item       = playlistItems[currentIndex]
-                        val url        = line.getUrl()
-                        val userAgent  = line.getUrlParameter("user-agent")
-                        val referrer   = line.getUrlParameter("referer")
-                        val urlHeaders = if (referrer != null) {item.headers + mapOf("referrer" to referrer)} else item.headers
+                        val item = playlistItems[currentIndex]
+                        val url = line.getUrl()
+                        val userAgent = line.getUrlParameter("user-agent")
+                        val referrer = line.getUrlParameter("referer")
+                        val urlHeaders = if (referrer != null) {
+                            item.headers + mapOf("referrer" to referrer)
+                        } else item.headers
 
                         playlistItems[currentIndex] = item.copy(
-                            url       = url,
-                            headers   = item.headers + urlHeaders,
+                            url = url,
+                            headers = item.headers + urlHeaders,
                             userAgent = userAgent ?: item.userAgent
                         )
                         currentIndex++
@@ -263,10 +260,10 @@ class IptvPlaylistParser {
      *
      * Input:
      * ```
-     * #EXTINF:-1 tvg-id="1234" group-title="Kids" tvg-logo="url/to/logo", Title
+     * #EXTINF:-1 tvg-name="TRT 1" tvg-language="Turkish" tvg-country="TR" tvg-id="TRT_1" tvg-logo="https://cdn-i.pr.trt.com.tr/trttv/w750/h750/q100/10660277.png" group-title="TRT",TRT 1
      * ```
      *
-     * Result: Title
+     * Result: TRT 1
      */
     private fun String.getTitle(): String? {
         return split(",").lastOrNull()?.replaceQuotesAndTrim()
@@ -303,8 +300,8 @@ class IptvPlaylistParser {
      * Result: Mozilla
      */
     private fun String.getUrlParameter(key: String): String? {
-        val urlRegex     = Regex("^(.*)\\|", RegexOption.IGNORE_CASE)
-        val keyRegex     = Regex("$key=(\\w[^&]*)", RegexOption.IGNORE_CASE)
+        val urlRegex = Regex("^(.*)\\|", RegexOption.IGNORE_CASE)
+        val keyRegex = Regex("$key=(\\w[^&]*)", RegexOption.IGNORE_CASE)
         val paramsString = replace(urlRegex, "").replaceQuotesAndTrim()
 
         return keyRegex.find(paramsString)?.groups?.get(1)?.value
@@ -317,20 +314,23 @@ class IptvPlaylistParser {
      *
      * Input:
      * ```
-     * #EXTINF:-1 tvg-id="1234" group-title="Kids" tvg-logo="url/to/logo", Title
+     * #EXTINF:-1 tvg-name="TRT 1" tvg-language="Turkish" tvg-country="TR" tvg-id="TRT_1" tvg-logo="https://cdn-i.pr.trt.com.tr/trttv/w750/h750/q100/10660277.png" group-title="TRT",TRT 1
      * ```
      *
      * Result will be equivalent to kotlin map:
      * ```Kotlin
      * mapOf(
-     *   "tvg-id" to "1234",
-     *   "group-title" to "Kids",
-     *   "tvg-logo" to "url/to/logo"
+     *   "tvg-name" to "TRT 1",
+     *   "tvg-language" to "Turkish",
+     *   "tvg-country" to "TR",
+     *   "tvg-id" to "TRT_1",
+     *   "tvg-logo" to "https://cdn-i.pr.trt.com.tr/trttv/w750/h750/q100/10660277.png",
+     *   "group-title" to "TRT"
      * )
      * ```
      */
     private fun String.getAttributes(): Map<String, String> {
-        val extInfRegex      = Regex("(#EXTINF:.?[0-9]+)", RegexOption.IGNORE_CASE)
+        val extInfRegex = Regex("(#EXTINF:.?[0-9]+)", RegexOption.IGNORE_CASE)
         val attributesString = replace(extInfRegex, "").replaceQuotesAndTrim().split(",").first()
 
         return attributesString
@@ -361,8 +361,8 @@ class IptvPlaylistParser {
     }
 
     companion object {
-        const val EXT_M3U     = "#EXTM3U"
-        const val EXT_INF     = "#EXTINF"
+        const val EXT_M3U = "#EXTM3U"
+        const val EXT_INF = "#EXTINF"
         const val EXT_VLC_OPT = "#EXTVLCOPT"
     }
 }
