@@ -17,5 +17,24 @@
         "description": "Canl\u0131 TV",
         "url": "https://raw.githubusercontent.com/patr0nq/kekikcanli/main/iptvSevenler.cs3",
         "name": "iptvSevenler"
+    },
+        {
+        "iconUrl": "https://www.google.com/s2/favicons?domain=tr.canlitv.team&sz=%size%",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/patr0nq/kekikcanli",
+        "fileSize": 18323,
+        "status": 1,
+        "language": "tr",
+        "authors": [
+            "patr0n"
+        ],
+        "tvTypes": [
+            "Live"
+        ],
+        "version": 4,
+        "internalName": "patr0nvavoo",
+        "description": "Canl\u0131 TV",
+        "url": "https://raw.githubusercontent.com/patr0nq/kekikcanli/main/patr0nvavoo.cs3",
+        "name": "patr0nvavoo"
     }
 ]
