@@ -7,17 +7,15 @@
         "status": 1,
         "language": "tr",
         "authors": [
-            "Adippe",
-            "keyiflerolsun",
             "patr0n"
         ],
         "tvTypes": [
             "Live"
         ],
         "version": 4,
-        "internalName": "ipTVSevenler",
+        "internalName": "iptvSevenler",
         "description": "Canl\u0131 TV",
         "url": "https://raw.githubusercontent.com/patr0nq/kekikcanli/main/iptvSevenler.cs3",
-        "name": "ipTvSevenler"
+        "name": "iptvSevenler"
     }
 ]
