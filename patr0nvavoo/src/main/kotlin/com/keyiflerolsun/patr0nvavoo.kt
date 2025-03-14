@@ -170,22 +170,8 @@ data class PlaylistItem(
 
 class IptvPlaylistParser {
 
-    /**
-     * Parse M3U8 string into [Playlist]
-     *
-     * @param content M3U8 content string.
-     * @throws PlaylistParserException if an error occurs.
-     */
-    fun parseM3U(content: String): Playlist {
-        return parseM3U(content.byteInputStream())
-    }
+    // Diğer metodlar...
 
-    /**
-     * Parse M3U8 content [InputStream] into [Playlist]
-     *
-     * @param input Stream of input data.
-     * @throws PlaylistParserException if an error occurs.
-     */
     @Throws(PlaylistParserException::class)
     fun parseM3U(input: InputStream): Playlist {
         val reader = input.bufferedReader()
@@ -201,44 +187,81 @@ class IptvPlaylistParser {
 
         while (line != null) {
             if (line.isNotEmpty()) {
-                if (line.startsWith(EXT_INF)) {
-                    val title      = line.getTitle()
-                    val attributes = line.getAttributes()
+                when {
+                    line.startsWith(EXT_INF) -> {
+                        val title = line.getTitle()
+                        val attributes = line.getAttributes()
 
-                    playlistItems.add(PlaylistItem(title, attributes))
-                } else if (line.startsWith(EXT_VLC_OPT)) {
-                    val item      = playlistItems[currentIndex]
-                    val userAgent = item.userAgent ?: line.getTagValue("http-user-agent")
-                    val referrer  = line.getTagValue("http-referrer")
-
-                    val headers = mutableMapOf<String, String>()
-
-                    if (userAgent != null) {
-                        headers["user-agent"] = userAgent
+                        playlistItems.add(PlaylistItem(title, attributes))
                     }
+                    line.startsWith(EXT_VLC_OPT) -> {
+                        val item = playlistItems[currentIndex]
+                        val userAgent = line.getTagValue("http-user-agent")
+                        val referrer = line.getTagValue("http-referrer")
 
-                    if (referrer != null) {
-                        headers["referrer"] = referrer
-                    }
+                        val headers = mutableMapOf<String, String>()
 
-                    playlistItems[currentIndex] = item.copy(
-                        userAgent = userAgent,
-                        headers   = headers
-                    )
-                } else {
-                    if (!line.startsWith("#")) {
-                        val item       = playlistItems[currentIndex]
-                        val url        = line.getUrl()
-                        val userAgent  = line.getUrlParameter("user-agent")
-                        val referrer   = line.getUrlParameter("referer")
-                        val urlHeaders = if (referrer != null) {item.headers + mapOf("referrer" to referrer)} else item.headers
+                        if (userAgent != null) {
+                            headers["user-agent"] = userAgent
+                        }
+
+                        if (referrer != null) {
+                            headers["referrer"] = referrer
+                        }
 
                         playlistItems[currentIndex] = item.copy(
-                            url       = url,
-                            headers   = item.headers + urlHeaders,
-                            userAgent = userAgent ?: item.userAgent
+                            userAgent = userAgent,
+                            headers = headers
                         )
-                        currentIndex++
+                    }
+                    line.startsWith(KODIPROP) -> {
+                        val item = playlistItems[currentIndex]
+                        val userAgent = line.getTagValue("http-user-agent")
+                        val referrer = line.getTagValue("http-referrer")
+
+                        val headers = mutableMapOf<String, String>()
+
+                        if (userAgent != null) {
+                            headers["user-agent"] = userAgent
+                        }
+
+                        if (referrer != null) {
+                            headers["referrer"] = referrer
+                        }
+
+                        playlistItems[currentIndex] = item.copy(
+                            userAgent = userAgent,
+                            headers = headers
+                        )
+                    }
+                    line.startsWith(EXTHTTP) -> {
+                        val item = playlistItems[currentIndex]
+                        val json = line.substringAfter(EXTHTTP).trim()
+                        val headersMap = parseJson<Map<String, String>>(json)
+
+                        playlistItems[currentIndex] = item.copy(
+                            headers = item.headers + headersMap
+                        )
+                    }
+                    else -> {
+                        if (!line.startsWith("#")) {
+                            val item = playlistItems[currentIndex]
+                            val url = line.getUrl()
+                            val userAgent = line.getUrlParameter("user-agent")
+                            val referrer = line.getUrlParameter("referer")
+                            val urlHeaders = if (referrer != null) {
+                                item.headers + mapOf("referrer" to referrer)
+                            } else {
+                                item.headers
+                            }
+
+                            playlistItems[currentIndex] = item.copy(
+                                url = url,
+                                headers = item.headers + urlHeaders,
+                                userAgent = userAgent ?: item.userAgent
+                            )
+                            currentIndex++
+                        }
                     }
                 }
             }
@@ -247,6 +270,17 @@ class IptvPlaylistParser {
         }
         return Playlist(playlistItems)
     }
+
+    // Diğer metodlar...
+
+    companion object {
+        const val EXT_M3U = "#EXTM3U"
+        const val EXT_INF = "#EXTINF"
+        const val EXT_VLC_OPT = "#EXTVLCOPT"
+        const val KODIPROP = "#KODIPROP"
+        const val EXTHTTP = "#EXTHTTP:"
+    }
+}
 
     /** Replace "" (quotes) from given string. */
     private fun String.replaceQuotesAndTrim(): String {
